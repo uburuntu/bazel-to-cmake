@@ -18,178 +18,180 @@
 See README.md for more information.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import sys
 import textwrap
 
-def StripColons(deps):
-  return map(lambda x: x[1:], deps)
 
-def IsSourceFile(name):
-  return name.endswith(".c") or name.endswith(".cc")
+def strip_colons(deps):
+    return map(lambda x: x[1:], deps)
+
+
+def is_source_file(name):
+    return name.endswith(".c") or name.endswith(".cc")
+
 
 class BuildFileFunctions(object):
-  def __init__(self, converter):
-    self.converter = converter
+    def __init__(self, converter):
+        self.converter = converter
 
-  def _add_deps(self, kwargs, keyword=""):
-    if "deps" not in kwargs:
-      return
-    self.converter.toplevel += "target_link_libraries(%s%s\n  %s)\n" % (
-        kwargs["name"],
-        keyword,
-        "\n  ".join(StripColons(kwargs["deps"]))
-    )
+    def _add_deps(self, kwargs, keyword=""):
+        if "deps" not in kwargs:
+            return
 
-  def load(self, *args):
-    pass
+        self.converter.toplevel += "target_link_libraries(%s%s\n  %s)\n" % (
+            kwargs["name"],
+            keyword,
+            "\n  ".join(strip_colons(kwargs["deps"]))
+        )
 
-  def cc_library(self, **kwargs):
-    if kwargs["name"] == "amalgamation" or kwargs["name"] == "upbc_generator":
-      return
-    files = kwargs.get("srcs", []) + kwargs.get("hdrs", [])
+    def load(self, *args):
+        pass
 
-    if filter(IsSourceFile, files):
-      # Has sources, make this a normal library.
-      self.converter.toplevel += "add_library(%s\n  %s)\n" % (
-          kwargs["name"],
-          "\n  ".join(files)
-      )
-      self._add_deps(kwargs)
-    else:
-      # Header-only library, have to do a couple things differently.
-      # For some info, see:
-      #  http://mariobadr.com/creating-a-header-only-library-with-cmake.html
-      self.converter.toplevel += "add_library(%s INTERFACE)\n" % (
-          kwargs["name"]
-      )
-      self._add_deps(kwargs, " INTERFACE")
+    def cc_library(self, **kwargs):
+        if kwargs["name"] == "amalgamation" or kwargs["name"] == "upbc_generator":
+            return
+        files = kwargs.get("srcs", []) + kwargs.get("hdrs", [])
 
-  def cc_binary(self, **kwargs):
-    pass
+        if filter(is_source_file, files):
+            # Has sources, make this a normal library.
+            self.converter.toplevel += "add_library(%s\n  %s)\n" % (
+                kwargs["name"],
+                "\n  ".join(files)
+            )
+            self._add_deps(kwargs)
+        else:
+            # Header-only library, have to do a couple things differently.
+            # For some info, see:
+            #  http://mariobadr.com/creating-a-header-only-library-with-cmake.html
+            self.converter.toplevel += "add_library(%s INTERFACE)\n" % (
+                kwargs["name"]
+            )
+            self._add_deps(kwargs, " INTERFACE")
 
-  def cc_test(self, **kwargs):
-    # Disable this until we properly support upb_proto_library().
-    # self.converter.toplevel += "add_executable(%s\n  %s)\n" % (
-    #     kwargs["name"],
-    #     "\n  ".join(kwargs["srcs"])
-    # )
-    # self.converter.toplevel += "add_test(NAME %s COMMAND %s)\n" % (
-    #     kwargs["name"],
-    #     kwargs["name"],
-    # )
+    def cc_binary(self, **kwargs):
+        pass
 
-    # if "data" in kwargs:
-    #   for data_dep in kwargs["data"]:
-    #     self.converter.toplevel += textwrap.dedent("""\
-    #       add_custom_command(
-    #           TARGET %s POST_BUILD
-    #           COMMAND ${CMAKE_COMMAND} -E copy
-    #                   ${CMAKE_SOURCE_DIR}/%s
-    #                   ${CMAKE_CURRENT_BINARY_DIR}/%s)\n""" % (
-    #       kwargs["name"], data_dep, data_dep
-    #     ))
+    def cc_test(self, **kwargs):
+        # Disable this until we properly support upb_proto_library().
+        # self.converter.toplevel += "add_executable(%s\n  %s)\n" % (
+        #     kwargs["name"],
+        #     "\n  ".join(kwargs["srcs"])
+        # )
+        # self.converter.toplevel += "add_test(NAME %s COMMAND %s)\n" % (
+        #     kwargs["name"],
+        #     kwargs["name"],
+        # )
 
-    # self._add_deps(kwargs)
-    pass
+        # if "data" in kwargs:
+        #   for data_dep in kwargs["data"]:
+        #     self.converter.toplevel += textwrap.dedent("""\
+        #       add_custom_command(
+        #           TARGET %s POST_BUILD
+        #           COMMAND ${CMAKE_COMMAND} -E copy
+        #                   ${CMAKE_SOURCE_DIR}/%s
+        #                   ${CMAKE_CURRENT_BINARY_DIR}/%s)\n""" % (
+        #       kwargs["name"], data_dep, data_dep
+        #     ))
 
-  def py_library(self, **kwargs):
-    pass
+        # self._add_deps(kwargs)
+        pass
 
-  def py_binary(self, **kwargs):
-    pass
+    def py_library(self, **kwargs):
+        pass
 
-  def lua_cclibrary(self, **kwargs):
-    pass
+    def py_binary(self, **kwargs):
+        pass
 
-  def lua_library(self, **kwargs):
-    pass
+    def lua_cclibrary(self, **kwargs):
+        pass
 
-  def lua_binary(self, **kwargs):
-    pass
+    def lua_library(self, **kwargs):
+        pass
 
-  def lua_test(self, **kwargs):
-    pass
+    def lua_binary(self, **kwargs):
+        pass
 
-  def sh_test(self, **kwargs):
-    pass
+    def lua_test(self, **kwargs):
+        pass
 
-  def make_shell_script(self, **kwargs):
-    pass
+    def sh_test(self, **kwargs):
+        pass
 
-  def exports_files(self, files, **kwargs):
-    pass
+    def make_shell_script(self, **kwargs):
+        pass
 
-  def package(self, **kwargs):
-    pass
+    def exports_files(self, files, **kwargs):
+        pass
 
-  def proto_library(self, **kwargs):
-    pass
+    def package(self, **kwargs):
+        pass
 
-  def generated_file_staleness_test(self, **kwargs):
-    pass
+    def proto_library(self, **kwargs):
+        pass
 
-  def upb_amalgamation(self, **kwargs):
-    pass
+    def generated_file_staleness_test(self, **kwargs):
+        pass
 
-  def upb_proto_library(self, **kwargs):
-    pass
+    def upb_amalgamation(self, **kwargs):
+        pass
 
-  def upb_proto_reflection_library(self, **kwargs):
-    pass
+    def upb_proto_library(self, **kwargs):
+        pass
 
-  def genrule(self, **kwargs):
-    pass
+    def upb_proto_reflection_library(self, **kwargs):
+        pass
 
-  def config_setting(self, **kwargs):
-    pass
+    def genrule(self, **kwargs):
+        pass
 
-  def select(self, arg_dict):
-    return []
+    def config_setting(self, **kwargs):
+        pass
 
-  def glob(self, *args):
-    return []
+    def select(self, _arg_dict):
+        return []
 
-  def licenses(self, *args):
-    pass
+    def glob(self, *_args):
+        return []
 
-  def map_dep(self, arg):
-    return arg
+    def licenses(self, *args):
+        pass
+
+    def map_dep(self, arg):
+        return arg
 
 
 class WorkspaceFileFunctions(object):
-  def __init__(self, converter):
-    self.converter = converter
+    def __init__(self, converter):
+        self.converter = converter
 
-  def load(self, *args):
-    pass
+    def load(self, *args):
+        pass
 
-  def workspace(self, **kwargs):
-    self.converter.prelude += "project(%s)\n" % (kwargs["name"])
+    def workspace(self, **kwargs):
+        self.converter.prelude += "project(%s)\n" % (kwargs["name"])
 
-  def http_archive(self, **kwargs):
-    pass
+    def http_archive(self, **kwargs):
+        pass
 
-  def git_repository(self, **kwargs):
-    pass
+    def git_repository(self, **kwargs):
+        pass
 
 
 class Converter(object):
-  def __init__(self):
-    self.prelude = ""
-    self.toplevel = ""
-    self.if_lua = ""
+    def __init__(self):
+        self.prelude = ""
+        self.toplevel = ""
+        self.if_lua = ""
 
-  def convert(self):
-    return self.template % {
-        "prelude": converter.prelude,
-        "toplevel": converter.toplevel,
-    }
+    def convert(self):
+        return self.template % {
+            "prelude": converter.prelude,
+            "toplevel": converter.toplevel,
+        }
 
-  template = textwrap.dedent("""\
+    template = textwrap.dedent("""\
     # This file was generated from BUILD using tools/make_cmakelists.py.
 
     cmake_minimum_required(VERSION 3.1)
@@ -254,26 +256,31 @@ class Converter(object):
 
   """)
 
+
 data = {}
 converter = Converter()
 
-def GetDict(obj):
-  ret = {}
-  for k in dir(obj):
-    if not k.startswith("_"):
-      ret[k] = getattr(obj, k)
-  return ret
 
-globs = GetDict(converter)
+def get_dict(obj):
+    ret = {}
+    for k in dir(obj):
+        if not k.startswith("_"):
+            ret[k] = getattr(obj, k)
+    return ret
+
+
+globs = get_dict(converter)
+
 
 def exec_file(filepath, globals_=None, locals_=None):
     with open(filepath) as f:
         code = compile(f.read(), filepath, "exec")
         exec(code, globals_, locals_)
 
-exec_file("WORKSPACE", GetDict(WorkspaceFileFunctions(converter)))
-exec_file("BUILD", GetDict(BuildFileFunctions(converter)))
+
+exec_file("WORKSPACE", get_dict(WorkspaceFileFunctions(converter)))
+exec_file("BUILD", get_dict(BuildFileFunctions(converter)))
 
 output_file = sys.argv[1] if len(sys.argv) > 0 else "CMakeLists.txt"
 with open(output_file, "w") as f:
-  f.write(converter.convert())
+    f.write(converter.convert())
